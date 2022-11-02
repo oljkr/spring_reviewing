@@ -62,6 +62,34 @@ public class MediagroupDAO {
 		return list;
 	}//list() end
 	
+	public List<MediagroupDTO> list2(int start, int end) { //페이징
+		List<MediagroupDTO> list=null;
+		try {
+			sql=new StringBuilder();
+			sql.append(" SELECT * ");
+			sql.append(" FROM ( ");
+			sql.append("       SELECT @ROWNUM := @ROWNUM + 1 as ROWNUM, M.* ");
+			sql.append("       FROM mediagroup M, (SELECT @ROWNUM := 0) TMP ");
+			sql.append("       ORDER BY mediagroupno DESC ) AA ");
+			sql.append(" WHERE "+start+"<=ROWNUM and ROWNUM<="+end+" ");
+			
+			RowMapper<MediagroupDTO> rowMapper=new RowMapper<MediagroupDTO>() {
+				@Override
+				public MediagroupDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+					MediagroupDTO dto=new MediagroupDTO();
+					dto.setMediagroupno(rs.getInt("mediagroupno"));
+					dto.setTitle(rs.getString("title"));
+					return dto;
+				}//mapRow() end
+			};//rowMapper end
+			
+			list=jt.query(sql.toString(), rowMapper);
+		}catch (Exception e) {
+			System.out.println("미디어그룹페이징실패:" +e);
+		}//end
+		return list;
+	}//list2() end
+	
 	public int totalRowCount() {
 		int cnt=0;
 		try {

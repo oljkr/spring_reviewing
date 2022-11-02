@@ -1,6 +1,9 @@
 package kr.co.itwill.mediagroup;
 
+import java.util.Collections;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -47,6 +50,7 @@ public class MediagroupCont {
 		return mav;		
 	}//createProc() end
 	
+	/* 1) 페이징 없는 목록
 	@RequestMapping("mediagroup/list.do")
 	public ModelAndView list() {
 		ModelAndView mav=new ModelAndView();
@@ -57,6 +61,53 @@ public class MediagroupCont {
 		
 		mav.addObject("list", list);
 		mav.addObject("count", totalRowCount);
+		
+		return mav;
+	}//list() end
+	*/
+	
+	@RequestMapping("mediagroup/list.do")
+	public ModelAndView list(HttpServletRequest req) {
+		ModelAndView mav=new ModelAndView();
+		mav.setViewName("mediagroup/list");
+		
+		int totalRowCount=dao.totalRowCount(); //총 글갯수
+		
+		//페이징
+		int numPerPage = 5; //한 페이지당 레코드 갯수
+		int pagePerBlock = 10; //페이지 리스트
+		
+		String pageNum=req.getParameter("pageNum");
+		if(pageNum==null) {
+			pageNum="1";
+		}
+		
+		int currentPage =Integer.parseInt(pageNum);
+		int startRow    =(currentPage-1)*numPerPage+1;
+		int endRow      =currentPage*numPerPage;
+		
+		//페이지 수
+		double totcnt =(double)totalRowCount/numPerPage;
+		int totalPage =(int)Math.ceil(totcnt);
+		
+		double d_page =(double)currentPage/pagePerBlock;
+		int Pages     =(int)Math.ceil(d_page)-1;
+		int startPage =Pages*pagePerBlock;
+		int endPage   =startPage+pagePerBlock+1;
+		
+		List list=null;
+		if(totalRowCount>0) {
+			list=dao.list2(startRow, endRow);
+		}else {
+			list=Collections.EMPTY_LIST;
+		}//if end
+		
+		mav.addObject("pageNum", currentPage);
+		mav.addObject("count", totalRowCount);
+		mav.addObject("totalPage", totalPage);
+		mav.addObject("startPage", startPage);
+		mav.addObject("endPage", endPage);
+		mav.addObject("list", list);
 		
 		return mav;
 	}//list() end
